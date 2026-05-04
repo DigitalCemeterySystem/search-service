@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.config import settings
 from app.extractor import build_query, clean_html, extract_relevant_info, trim_combined_text
@@ -30,6 +31,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 storage = SearchStorage(settings.db_path)
 
