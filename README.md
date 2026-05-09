@@ -113,12 +113,34 @@ curl http://localhost:8082/api/search/records
 curl http://localhost:8080/search-service/api-docs
 ```
 
-Пример создания job напрямую:
+Пример создания job напрямую из Windows PowerShell:
 
 ```powershell
+$body = @{
+  full_name = 'Иванов Иван Иванович'
+  city = 'Новосибирск'
+  cemetery = 'Южное кладбище'
+  limit = 5
+} | ConvertTo-Json
+$body = -join ($body.ToCharArray() | ForEach-Object {
+  if ([int][char]$_ -gt 127) { '\u{0:x4}' -f [int][char]$_ } else { $_ }
+})
+
 curl -Method POST http://localhost:8082/api/search/jobs `
   -ContentType 'application/json' `
-  -Body '{"full_name":"Иванов Иван Иванович","city":"Новосибирск","cemetery":"Южное кладбище","limit":5}'
+  -Body ([System.Text.Encoding]::ASCII.GetBytes($body))
+```
+
+## Тесты
+
+Команды запускаются из корня `search-service`. Если в трассировке виден путь вида `C:\Python314\...`, используется системный Python без зависимостей сервиса; нужно активировать `.venv` или запускать Python из неё.
+
+```powershell
+cd D:\NSU\Diploma\DigitalCemeterySystem\search-service
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests
 ```
 
 ## Сборка Docker-образа
